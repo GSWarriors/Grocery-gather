@@ -31,9 +31,15 @@ const AddFoodIntentHandler = {
   },
 
   handle(handlerInput) {
-    const checkFoodOutput = 'Adding your items to the cart.';
+    //const checkFoodOutput = 'Adding your items to the cart.';
+    const food = handlerInput.requestEnvelope.request.intent.slots.food.value;
+    const count = handlerInput.requestEnvelope.request.intent.slots.count.value;
+    const meal = handlerInput.requestEnvelope.request.intent.slots.meal.value;
+
+    const speakOutput = `Thanks, I'll remember that you ate ${count} ${food} at ${meal}.`;
+
     return handlerInput.responseBuilder
-      .speak(checkFoodOutput)
+      .speak(speakOutput)
       .getResponse();
   }
 };
