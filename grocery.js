@@ -1,7 +1,6 @@
 
 const Alexa = require('ask-sdk-core');
 
-
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
@@ -97,20 +96,3 @@ exports.handler = Alexa.SkillBuilders.custom()
     .addErrorHandlers(
         ErrorHandler)
     .lambda();
-
-
-
-
-
-
-    /*const attributesManager = handlerInput.attributesManager;
-
-    let foodAttributes = {
-        "food": food,
-        "count": defaultCount - count,
-        "meal": meal
-
-    };
-
-    attributesManager.setPersistentAttributes(foodAttributes);
-    await attributesManager.savePersistentAttributes();*/
