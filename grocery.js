@@ -13,15 +13,16 @@ const LaunchRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
     handle(handlerInput) {
+
         var speakOutput = "";
         const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
         if (sessionAttributes.visits === 0) {
-          speakOutput = 'Welcome to grocery gather, what items are in your shopping cart? You can say up to 1.'
+          speakOutput = 'Welcome to grocery gather, what items are in your fridge? You can say up to 1.'
         } else {
           var numItems = sessionAttributes.pastItems.length;
-          speakOutput = `Welcome back to grocery gather, you currently have ${numItems} items in your shopping cart.
-          Please say the items you would like to add.`
+          speakOutput = `Welcome back to grocery gather, you currently have ${numItems} items in your fridge.
+          Please say the items you would like to update, or, the items you would like to add to your shopping list.`
         }
 
 
@@ -40,10 +41,10 @@ const LaunchRequestHandler = {
 //then, invocation goes to next step- one of the intents based on what the user said in response
 //note: this is equivalent to PlayGameHandler
 
-const AddShoppingCartHandler = {
+const AddFridgeItemsHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-          && handlerInput.requestEnvelope.request.intent.name === 'AddShoppingCartIntent';
+          && handlerInput.requestEnvelope.request.intent.name === 'AddFridgeItemsIntent';
     },
 
     handle(handlerInput) {
@@ -70,7 +71,7 @@ const AddShoppingCartHandler = {
         } else {
 
 
-          speakOutput = `You already have an item added.`
+          speakOutput = `You already have ${firstItem} added.`
 
           return handlerInput.responseBuilder
               .speak(speakOutput)
@@ -79,6 +80,30 @@ const AddShoppingCartHandler = {
 
 
     }
+};
+
+//this tells us how much we ate from the week. it'll be useful because we can gauge how many
+//groceries someone may need per week to order later
+const AddFoodListIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      &&  handlerInput.requestEnvelope.request.intent.name === 'AddFoodListIntent';
+  },
+
+  handle(handlerInput) {
+    var speakOutput = '';
+    const food = handlerInput.requestEnvelope.request.intent.slots.food.value;
+    const count = handlerInput.requestEnvelope.request.intent.slots.count.value;
+    const meal = handlerInput.requestEnvelope.request.intent.slots.meal.value;
+
+    speakOutput = `Thanks, I'll remember that you ate ${count} ${food} at ${meal}.`;
+
+
+    return handlerInput.responseBuilder
+       .speak(speakOutput)
+       .getResponse();
+
+  }
 };
 
 
@@ -143,7 +168,7 @@ const LoadDataInterceptor = {
     if (!persistent) persistent = {};
 
     //here, we initialize the variables for items we send in so that its easier to work
-    //with them in the handlers- specifically addshoppingcarthandler in this case.
+    //with them in the handlers- specifically addfridgeitemshandler in this case.
     if(!sessionAttributes.hasOwnProperty('firstItem')) sessionAttributes.firstItem = null;
 
     if(!persistent.hasOwnProperty('pastItems')) persistent.pastItems = [];
@@ -215,8 +240,8 @@ const LoggingResponseInterceptor = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        AddShoppingCartHandler,
-        //AddFoodIntentHandler,
+        AddFridgeItemsHandler,
+        AddFoodListIntentHandler,
         SessionEndedRequestHandler,
         IntentReflectorHandler) // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
 
