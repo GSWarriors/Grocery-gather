@@ -70,7 +70,6 @@ const AddFridgeItemsHandler = {
               .getResponse();
         } else {
 
-
           speakOutput = `You already have ${firstItem} added.`
 
           return handlerInput.responseBuilder
@@ -82,6 +81,8 @@ const AddFridgeItemsHandler = {
     }
 };
 
+
+
 //this tells us how much we ate from the week. it'll be useful because we can gauge how many
 //groceries someone may need per week to order later
 const AddFoodListIntentHandler = {
@@ -90,21 +91,51 @@ const AddFoodListIntentHandler = {
       &&  handlerInput.requestEnvelope.request.intent.name === 'AddFoodListIntent';
   },
 
-  handle(handlerInput) {
-    var speakOutput = '';
-    const food = handlerInput.requestEnvelope.request.intent.slots.food.value;
-    const count = handlerInput.requestEnvelope.request.intent.slots.count.value;
-    const meal = handlerInput.requestEnvelope.request.intent.slots.meal.value;
+  async handle(handlerInput) {
 
-    speakOutput = `Thanks, I'll remember that you ate ${count} ${food} at ${meal}.`;
+        const { permissions } = handlerInput.requestEnvelope.context.System.user
 
+        // Check if permissions has been granted. If not request it.
+        if (!permissions) {
+          const permissions = [
+              'write::alexa:household:list',
+              'read::alexa:household:list'
+          ];
+          return handlerInput.responseBuilder
+            .speak('Alexa List permissions are missing. You can grant permissions within the Alexa app.')
+            .withAskForPermissionsConsentCard(permissions)
+            .getResponse();
+        }
 
-    return handlerInput.responseBuilder
-       .speak(speakOutput)
-       .getResponse();
+        // Create an instance of the ListManagementServiceClient
+        const listClient = handlerInput.serviceClientFactory.getListManagementServiceClient();
+
+        // Get specified list name or default to current day an time
+        //const today = new Date()
+        //const listName = Alexa.getSlotValue(handlerInput.requestEnvelope, 'list_name') || today.toString();
+
+        // Make use listClient to make an async HTTP request to create the list
+        try {
+            const response = await listClient.createList({
+                "name": "Shopping List",
+                "state": "active"
+            }, "")
+        } catch(error) {
+            console.log(`~~~~ ERROR ${JSON.stringify(error)}`)
+            return handlerInput.responseBuilder
+                .speak("An error occured. Please try again later.")
+                //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+                .getResponse();
+        }
+
+        return handlerInput.responseBuilder
+            .speak("List was successfully created.")
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
 
   }
 };
+
 
 
 
