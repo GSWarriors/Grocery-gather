@@ -7,9 +7,8 @@ const ddbAdapter = require('ask-sdk-dynamodb-persistence-adapter')
 const item_tracking = true;
 
 
-
 const LaunchRequestHandler = {
-    canHandle(handlerInput) {
+     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
     handle(handlerInput) {
@@ -38,61 +37,13 @@ const LaunchRequestHandler = {
     }
 };
 
-//then, invocation goes to next step- one of the intents based on what the user said in response
-//note: this is equivalent to PlayGameHandler
 
-const AddFridgeItemsHandler = {
+const CreateCustomListIntentHandler = {
     canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-          && handlerInput.requestEnvelope.request.intent.name === 'AddFridgeItemsIntent';
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'CreateCustomListIntent';
     },
-
-    handle(handlerInput) {
-
-        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-        var speakOutput = '';
-        const firstItem = handlerInput.requestEnvelope.request.intent.slots.first_item.value;
-
-
-        if (sessionAttributes.firstItem === null) {
-
-          speakOutput = `Thanks, I'll remember that you added ${firstItem} as your item for the week.`;
-          sessionAttributes.firstItem = firstItem;
-
-          //save the session attributes
-          handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-          //add item to list of past items?
-          sessionAttributes.pastItems.push(sessionAttributes.firstItem);
-
-          return handlerInput.responseBuilder
-              .speak(speakOutput)
-              .getResponse();
-        } else {
-
-          speakOutput = `You already have ${firstItem} added.`
-
-          return handlerInput.responseBuilder
-              .speak(speakOutput)
-              .getResponse();
-        }
-
-
-    }
-};
-
-
-
-//this tells us how much we ate from the week. it'll be useful because we can gauge how many
-//groceries someone may need per week to order later
-const AddFoodListIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      &&  handlerInput.requestEnvelope.request.intent.name === 'AddFoodListIntent';
-  },
-
-  async handle(handlerInput) {
-
+    async handle(handlerInput) {
         const { permissions } = handlerInput.requestEnvelope.context.System.user
 
         // Check if permissions has been granted. If not request it.
@@ -111,13 +62,13 @@ const AddFoodListIntentHandler = {
         const listClient = handlerInput.serviceClientFactory.getListManagementServiceClient();
 
         // Get specified list name or default to current day an time
-        //const today = new Date()
-        //const listName = Alexa.getSlotValue(handlerInput.requestEnvelope, 'list_name') || today.toString();
+        const today = new Date()
+        const listName = Alexa.getSlotValue(handlerInput.requestEnvelope, 'list_name') || today.toString();
 
         // Make use listClient to make an async HTTP request to create the list
         try {
             const response = await listClient.createList({
-                "name": "Shopping List",
+                "name": listName,
                 "state": "active"
             }, "")
         } catch(error) {
@@ -132,11 +83,8 @@ const AddFoodListIntentHandler = {
             .speak("List was successfully created.")
             //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
             .getResponse();
-
-  }
+    }
 };
-
-
 
 
 
@@ -144,7 +92,7 @@ const AddFoodListIntentHandler = {
 
 const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
     },
     handle(handlerInput) {
         // Any cleanup logic goes here.
@@ -153,13 +101,15 @@ const SessionEndedRequestHandler = {
 };
 
 // The intent reflector is used for interaction model testing and debugging.
-// It will simply repeat the intent the user said.
+// It will simply repeat the intent the user said. You can create custom handlers
+// for your intents by defining them above, then also adding them to the request
+// handler chain below.
 const IntentReflectorHandler = {
     canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type === 'IntentRequest';
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest';
     },
     handle(handlerInput) {
-        const intentName = handlerInput.requestEnvelope.request.intent.name;
+        const intentName = Alexa.getIntentName(handlerInput.requestEnvelope);
         const speakOutput = `You just triggered ${intentName}`;
 
         return handlerInput.responseBuilder
@@ -177,8 +127,8 @@ const ErrorHandler = {
         return true;
     },
     handle(handlerInput, error) {
-        console.log(`~~~~ Error handled: ${error.message}`);
-        const speakOutput = `Sorry, I couldn't understand what you said. Please try again.`;
+        console.log(`~~~~ Error handled: ${error.stack}`);
+        const speakOutput = `Sorry, I had trouble doing what you asked. Please try again.`;
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
@@ -186,6 +136,7 @@ const ErrorHandler = {
             .getResponse();
     }
 };
+
 
 
 //request interceptors run before handlers are run (canHandle) functions
@@ -254,27 +205,17 @@ const LoggingResponseInterceptor = {
 };
 
 
-
-
-
-
-
-
-
 // The SkillBuilder acts as the entry point for your skill, routing all request and response
 // payloads to the handlers above. Make sure any new handlers or interceptors you've
 // defined are included below. The order matters - they're processed top to bottom.
-
-//register 2 request and response interceptors.
-//before running req handlers, the req interceptors run
-//after handler returns result, the resp. interceptors run
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        AddFridgeItemsHandler,
-        AddFoodListIntentHandler,
+        CreateCustomListIntentHandler,
         SessionEndedRequestHandler,
-        IntentReflectorHandler) // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+        IntentReflectorHandler, // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+    )
+
 
     .addRequestInterceptors(
         LoadDataInterceptor,
@@ -285,9 +226,10 @@ exports.handler = Alexa.SkillBuilders.custom()
         LoggingResponseInterceptor
     )
 
-
+    .withApiClient(new Alexa.DefaultApiClient()) // Add it to the response builder to get access the to ListManagementClient
     .addErrorHandlers(
-        ErrorHandler)
+        ErrorHandler,
+    )
     .withPersistenceAdapter(
       new ddbAdapter.DynamoDbPersistenceAdapter({
         tableName: process.env.DYNAMODB_PERSISTENCE_TABLE_NAME,
