@@ -135,6 +135,58 @@ const CreateCustomListIntentHandler = {
 
 
 
+//add getcustomlists first
+//then, add the list item using the list returned from getListsMetadata
+const GetCustomListsIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetCustomListsIntent';
+    },
+    async handle(handlerInput) {
+        // Check if permissions has been granted. If not request it.
+        const { permissions } = handlerInput.requestEnvelope.context.System.user
+        if (!permissions) {
+          const permissions = [
+              'write::alexa:household:list',
+              'read::alexa:household:list'
+          ];
+          return handlerInput.responseBuilder
+            .speak('Alexa List permissions are missing. You can grant permissions within the Alexa app.')
+            .withAskForPermissionsConsentCard(permissions)
+            .getResponse();
+        }
+
+        const listClient = handlerInput.serviceClientFactory.getListManagementServiceClient();
+
+        try {
+            // Use the listClient to retrieve lists for user's account
+            const response = await listClient.getListsMetadata()
+
+            // Remove the default lists to get only the custom lists
+            const customLists = response.lists.splice(2)
+
+            // Map to get only the list names from the object and join them separated by a comma
+            const listStr = customLists.map((list) => list.name).join(',')
+
+            // Speak out the custom lists on the user's account
+            return handlerInput.responseBuilder
+                .speak(`You have ${customLists.length} custom lists: ${listStr}`)
+                .getResponse();
+        } catch(error) {
+            console.log(`~~~~ ERROR ${JSON.stringify(error)}`)
+            return handlerInput.responseBuilder
+                .speak("An error occured. Please try again later.")
+                .getResponse();
+        }
+    }
+};
+
+
+
+
+
+
+
 
 
 const SessionEndedRequestHandler = {
@@ -260,6 +312,7 @@ exports.handler = Alexa.SkillBuilders.custom()
         LaunchRequestHandler,
         AddFridgeItemsHandler,
         CreateCustomListIntentHandler,
+        GetCustomListsIntentHandler,
         SessionEndedRequestHandler,
         IntentReflectorHandler, // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
     )
