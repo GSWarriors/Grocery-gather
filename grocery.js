@@ -38,6 +38,53 @@ const LaunchRequestHandler = {
 };
 
 
+
+//then, invocation goes to next step- one of the intents based on what the user said in response
+//note: this is equivalent to PlayGameHandler
+
+const AddFridgeItemsHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+          && handlerInput.requestEnvelope.request.intent.name === 'AddFridgeItemsIntent';
+    },
+
+    handle(handlerInput) {
+
+        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        var speakOutput = '';
+        const firstItem = handlerInput.requestEnvelope.request.intent.slots.first_item.value;
+
+
+        if (sessionAttributes.firstItem === null) {
+
+          speakOutput = `Thanks, I'll remember that you added ${firstItem} as your item for the week.`;
+          sessionAttributes.firstItem = firstItem;
+
+          //save the session attributes
+          handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+
+          //add item to list of past items?
+          sessionAttributes.pastItems.push(sessionAttributes.firstItem);
+
+          return handlerInput.responseBuilder
+              .speak(speakOutput)
+              .getResponse();
+        } else {
+
+
+          speakOutput = `You already have ${firstItem} added.`
+
+          return handlerInput.responseBuilder
+              .speak(speakOutput)
+              .getResponse();
+        }
+
+
+    }
+};
+
+
+
 const CreateCustomListIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -211,6 +258,7 @@ const LoggingResponseInterceptor = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
+        AddFridgeItemsHandler,
         CreateCustomListIntentHandler,
         SessionEndedRequestHandler,
         IntentReflectorHandler, // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
