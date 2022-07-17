@@ -183,6 +183,72 @@ const GetCustomListsIntentHandler = {
 
 
 
+//this tells us how much we ate from the week. it'll be useful because we can gauge how many
+//groceries someone may need per week to order later
+//we can use this to add to existing amazon list from list API
+const AddFoodListIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      &&  handlerInput.requestEnvelope.request.intent.name === 'AddFoodListIntent';
+  },
+
+  async handle(handlerInput) {
+    var speakOutput = '';
+    const food = handlerInput.requestEnvelope.request.intent.slots.food.value;
+    const count = handlerInput.requestEnvelope.request.intent.slots.count.value;
+    const meal = handlerInput.requestEnvelope.request.intent.slots.meal.value;
+
+    speakOutput = `Thanks, I'll remember that you ate ${count} ${food} at ${meal}.`;
+
+
+    //get the list wanted here through getListsMetadata and splice
+
+    const listClient = handlerInput.serviceClientFactory.getListManagementServiceClient();
+
+    try {
+        // Use the listClient to retrieve lists for user's account
+        const response = await listClient.getListsMetadata();
+
+        // Remove the default lists to get only the custom lists
+
+
+        //try iterating through response
+        var currentLists = response.lists;
+        var stringify = JSON.stringify(currentLists);
+        var convertJSON = JSON.parse(stringify);
+        var arrayLength = convertJSON.length;
+
+        console.log("The lists converted to JSON: " + convertJSON);
+
+        //for (var i = 0; i < stringify.length; i++) {
+        console.log("The list id: " + convertJSON[0]['listId'])
+        console.log("");
+        console.log("The list id: " + convertJSON[1]['listId'])
+        console.log("");
+        console.log("The list id: " + convertJSON[2]['listId'])
+        console.log("");
+        //}
+
+
+
+
+
+    return handlerInput.responseBuilder
+       .speak(speakOutput)
+       .getResponse();
+
+    } catch(error) {
+         console.log(`~~~~ ERROR ${JSON.stringify(error)}`)
+         return handlerInput.responseBuilder
+             .speak("An error occured. Please try again later.")
+             .getResponse();
+    }
+
+
+  }
+};
+
+
 
 
 
@@ -313,6 +379,7 @@ exports.handler = Alexa.SkillBuilders.custom()
         AddFridgeItemsHandler,
         CreateCustomListIntentHandler,
         GetCustomListsIntentHandler,
+        AddFoodListIntentHandler,
         SessionEndedRequestHandler,
         IntentReflectorHandler, // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
     )
