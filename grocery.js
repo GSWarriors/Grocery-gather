@@ -220,22 +220,24 @@ const AddFoodListIntentHandler = {
 
         console.log("The lists converted to JSON: " + convertJSON);
 
-        //for (var i = 0; i < stringify.length; i++) {
-        console.log("The list id: " + convertJSON[0]['listId'])
-        console.log("");
-        console.log("The list id: " + convertJSON[1]['listId'])
-        console.log("");
-        console.log("The list id: " + convertJSON[2]['listId'])
-        console.log("");
-        //}
+        const createItemResponse = await listClient.createListItem("8b918124-eaa9-4173-9b3e-35b1c10d77ce",
+        {
+            "status": "active",
+            "value": `${food}`
+        }, "")
+
+
+        //get the list items after adding the item
+        const getListResponse = await listClient.getList("8b918124-eaa9-4173-9b3e-35b1c10d77ce", "active");
+
+        var currList = JSON.stringify(getListResponse);
+        console.log("the list we created: " + currList);
 
 
 
-
-
-    return handlerInput.responseBuilder
-       .speak(speakOutput)
-       .getResponse();
+        return handlerInput.responseBuilder
+           .speak(speakOutput)
+           .getResponse();
 
     } catch(error) {
          console.log(`~~~~ ERROR ${JSON.stringify(error)}`)
