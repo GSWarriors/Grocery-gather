@@ -2,7 +2,7 @@
 const Alexa = require('ask-sdk-core');
 const AWS = require('aws-sdk')
 const ddbAdapter = require('ask-sdk-dynamodb-persistence-adapter')
-
+const axios = require("axios");
 //tracking past items between sessions? yes
 const item_tracking = true;
 
@@ -233,6 +233,17 @@ const AddFoodListIntentHandler = {
         var currList = JSON.stringify(getListResponse);
         console.log("the list we created: " + currList);
 
+        //creating axios post request of list to the webserver we have
+        axios.post("http://0.0.0.0:8080/",
+            {
+                currentList: {"name": "sid"}
+            },
+            {
+                headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                }
+            }
+        )
 
 
         return handlerInput.responseBuilder
