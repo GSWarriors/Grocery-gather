@@ -233,17 +233,34 @@ const AddFoodListIntentHandler = {
         var currList = JSON.stringify(getListResponse);
         console.log("the list we created: " + currList);
 
+
+
         //creating axios post request of list to the webserver we have
-        axios.post("http://0.0.0.0:8080/",
-            {
-                currentList: {"name": "sid"}
-            },
-            {
-                headers: {
-                "Content-type": "application/json; charset=UTF-8",
-                }
+        //below is the IP for the google cloud VM instance containing the server.
+        const sendPostRequest = async () => {
+
+            try {
+                const resp = await axios.post('http://34.67.98.98:8080', currList,
+                    {
+
+                        headers: {
+                        "Content-type": "application/json; charset=UTF-8",
+                        }
+                    });
+
+                console.log(resp.data);
+
+            } catch (err) {
+                // Handle Error Here
+                console.error(err);
             }
-        )
+        };
+
+        sendPostRequest();
+
+
+
+
 
 
         return handlerInput.responseBuilder
