@@ -5,12 +5,13 @@ const ddbAdapter = require('ask-sdk-dynamodb-persistence-adapter')
 const axios = require("axios");
 //tracking past items between sessions? yes
 const item_tracking = true;
-
+var listName = "";
 
 const LaunchRequestHandler = {
      canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
+
     handle(handlerInput) {
 
         var speakOutput = "";
@@ -105,6 +106,8 @@ const CreateCustomListIntentHandler = {
             .getResponse();
         }
 
+
+
         // Create an instance of the ListManagementServiceClient
         const listClient = handlerInput.serviceClientFactory.getListManagementServiceClient();
 
@@ -184,8 +187,9 @@ const GetCustomListsIntentHandler = {
 
 
 //this tells us how much we ate from the week. it'll be useful because we can gauge how many
-//groceries someone may need per week to order later
-//we can use this to add to existing amazon list from list API
+//groceries someone may need per week.
+
+//this also lets us add to list API of a particular list (mylist), and adds the food item to it.
 const AddFoodListIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -193,6 +197,10 @@ const AddFoodListIntentHandler = {
   },
 
   async handle(handlerInput) {
+
+    //use the custom list from "CreateCustomListIntent" in order to find the list and add to it
+    //it is called listName
+
     var speakOutput = '';
     const food = handlerInput.requestEnvelope.request.intent.slots.food.value;
     const count = handlerInput.requestEnvelope.request.intent.slots.count.value;
@@ -209,18 +217,33 @@ const AddFoodListIntentHandler = {
         // Use the listClient to retrieve lists for user's account
         const response = await listClient.getListsMetadata();
 
-        // Remove the default lists to get only the custom lists
-
-
         //try iterating through response
         var currentLists = response.lists;
         var stringify = JSON.stringify(currentLists);
         var convertJSON = JSON.parse(stringify);
         var arrayLength = convertJSON.length;
+        var currListID = "";
 
-        console.log("The lists converted to JSON: " + convertJSON);
 
-        const createItemResponse = await listClient.createListItem("8b918124-eaa9-4173-9b3e-35b1c10d77ce",
+
+        console.log("The lists converted to JSON: " + stringify);
+        console.log("the array length for convertJSON: " + arrayLength);
+
+        for (let i = 0; i < arrayLength; i++) {
+
+            var currListName = convertJSON[i]['name']
+
+            if (currListName === "my list") {
+                currListID = convertJSON[i]['listId'];
+                console.log("listID: " + currListID);
+                break;
+            }
+        }
+
+        //after this, add item to the created "myList" in particular
+
+
+        const createItemResponse = await listClient.createListItem(currListID,
         {
             "status": "active",
             "value": `${food}`
@@ -228,7 +251,7 @@ const AddFoodListIntentHandler = {
 
 
         //get the list items after adding the item
-        const getListResponse = await listClient.getList("8b918124-eaa9-4173-9b3e-35b1c10d77ce", "active");
+        const getListResponse = await listClient.getList(currListID, "active");
 
         var currList = JSON.stringify(getListResponse);
         console.log("the list we created: " + currList);
@@ -240,7 +263,7 @@ const AddFoodListIntentHandler = {
         const sendPostRequest = async () => {
 
             try {
-                const resp = await axios.post('http://34.67.98.98:8080', currList,
+                const resp = await axios.post('http://35.184.222.89:8086', currList,
                     {
 
                         headers: {
@@ -261,8 +284,6 @@ const AddFoodListIntentHandler = {
 
 
 
-
-
         return handlerInput.responseBuilder
            .speak(speakOutput)
            .getResponse();
@@ -277,6 +298,7 @@ const AddFoodListIntentHandler = {
 
   }
 };
+
 
 
 
