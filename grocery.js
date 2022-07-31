@@ -263,7 +263,7 @@ const AddFoodListIntentHandler = {
         const sendPostRequest = async () => {
 
             try {
-                const resp = await axios.post('http://35.184.222.89:8086', currList,
+                const resp = await axios.post('http://35.184.222.89:8080', currList,
                     {
 
                         headers: {
