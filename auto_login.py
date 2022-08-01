@@ -8,7 +8,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 #safeway credentials
 email = "sid.punj@gmail.com"
-password = "Buygrocery#12"
+password = ""
 
 #head to safeway login page
 driver.get("https://www.safeway.com/")
