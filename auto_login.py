@@ -2,12 +2,14 @@
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+import json
 
-os.environ["PASSWORD"] = ""
+os.environ["PASSWORD"] = "Gettingstuff#12"
 
 
 #driver = webdriver.Chrome(ChromeDriverManager().install())
@@ -23,7 +25,7 @@ password = os.environ["PASSWORD"]
 
 #head to safeway login page
 driver.get("https://www.safeway.com/")
-signup_button = driver.find_element(By.CLASS_NAME, "menu-nav__profile-button")
+"""signup_button = driver.find_element(By.CLASS_NAME, "menu-nav__profile-button")
 signup_button.click()
 
 signup_button2 = driver.find_element(By.ID, "sign-in-modal-link")
@@ -41,10 +43,28 @@ email_field.send_keys(email)
 password_field.click()
 password_field.send_keys(password)
 
-final_signin_button.click()
+final_signin_button.click()"""
+
+
+#load logfile.json and get first item (apple) entered in search box on safeway website.
+file = open('logfile.json')
+data = json.load(file)
+
+first_elem = data['items'][0]
+first_item = first_elem['value']
+
+print("the first item: " + str(first_item))
+
+search_bar = driver.find_element(By.ID, "skip-main-content")
+search_bar.send_keys(first_item)
+search_bar.send_keys(Keys.ENTER)
+
+#for entry in data['items']:
+#    print("entry: " + str(entry))
+#    print("value: " + str(entry['value']))
+#    print()
 
 
 
-
-#email = driver.find_element(By.id("label-email"))
-#print("email: " + str(email))
+#search_button = driver.find_element(By.CLASS_NAME, "svg-icon svg-icon-search-grey")
+#search_button.click()
