@@ -145,3 +145,39 @@ def check_inventory_and_match(first_item, item_list, driver):
 
 
 main()
+
+
+
+
+    """var index = newCustomList['items'].findIndex(item => item.value === `${food}`);
+                 var currItem = newCustomList['items'][index]
+                 currItem['count'] += count;
+
+                 var updatedListStr = JSON.stringify(newCustomList);
+
+                console.log("the current list after updating count field: " + updatedListStr);*/
+
+
+
+
+
+                /*var itemID = createItemResponse.id
+
+       console.log("the item ID is: " + itemID);
+       console.log("the list itself: " + currList);
+
+
+       for (let j = 0; j < currListLength; j++) {
+           var currItem = currListJSON['items'][j]
+           var currItemID = currListJSON['items'][j]['id']
+           //console.log("item IDs: " + currItemID);
+
+           if (itemID === currItemID) {
+               console.log("found the item we're looking for!")
+               currItem['count'] = count
+               currList = JSON.stringify(currListJSON);
+           }
+
+       }
+
+       console.log("the current list after adding count field: " + currList);"""

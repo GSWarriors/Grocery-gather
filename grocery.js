@@ -233,27 +233,32 @@ const AddFoodListIntentHandler = {
 
             if (currListName === "my list") {
                 currListID = convertJSON[i]['listId'];
+                console.log("the list id: " + currListID);
                 break;
             }
         }
+
 
         //after this, add item to the created "myList" in particular
         //find the length of the list we're looking at and iterate through it
         var currList = await listClient.getList(currListID, "active");
         var currListLength = currList.items.length;
-        currList = JSON.stringify(currList);
-        var currListJSON = JSON.parse(currList);
 
+        var currListStr = JSON.stringify(currList);
+        var currListJSON = JSON.parse(currListStr);
+        var newCustomList = JSON.parse(JSON.stringify(currList));
 
-
-        console.log("the list before adding item: " + currList);
-        console.log("");
+        console.log("the current list: " + currListStr);
 
 
         //create the item if doesn't already exist and add count field using for loop through itemIDs
-
-        if (currListJSON['items'].some(item => item.value === `${food}`)) {
+        //otherwise, find the existing item name (strawberry for now), and update count for it.
+        if (newCustomList['items'].some(item => item.value === `${food}`)) {
              console.log("this item already exists!");
+             //var updatedListStr = JSON.stringify(newCustomList);
+             //console.log("the current list: " + updatedListStr);
+
+
         } else {
              console.log("this item does not already exist!");
 
@@ -265,56 +270,33 @@ const AddFoodListIntentHandler = {
 
             var newList = await listClient.getList(currListID, "active");
             var newListLength = newList.items.length;
-            newList = JSON.stringify(newList);
-            var newListJSON = JSON.parse(newList);
+            var newListStr = JSON.stringify(newList);
+            newCustomList = JSON.parse(newListStr);
 
             var itemID = createItemResponse.id
             console.log("the item ID is: " + itemID);
 
-            console.log("the list after adding item: " + newList);
-            console.log("");
+            console.log("the list after adding item: " + newListStr);
+            /*console.log("");
 
             for (let j = 0; j < newListLength; j++) {
-                var newItem = newListJSON['items'][j]
-                var newItemID = newListJSON['items'][j]['id']
+                var newItem = newCustomList['items'][j]
+                var newItemID = newCustomList['items'][j]['id']
 
                 if (itemID === newItemID) {
                     console.log("found the item we're looking for!")
                     newItem['count'] = count
-                    newList = JSON.stringify(newListJSON);
                 }
 
             }
 
-            console.log("the current list after adding count field: " + newList);
+            console.log("the current list after adding count field: " + JSON.stringify(newCustomList));*/
 
 
         }
 
 
 
-
-
-        /*var itemID = createItemResponse.id
-
-        console.log("the item ID is: " + itemID);
-        console.log("the list itself: " + currList);
-
-
-        for (let j = 0; j < currListLength; j++) {
-            var currItem = currListJSON['items'][j]
-            var currItemID = currListJSON['items'][j]['id']
-            //console.log("item IDs: " + currItemID);
-
-            if (itemID === currItemID) {
-                console.log("found the item we're looking for!")
-                currItem['count'] = count
-                currList = JSON.stringify(currListJSON);
-            }
-
-        }
-
-        console.log("the current list after adding count field: " + currList);*/
 
 
         /*
