@@ -233,83 +233,91 @@ const AddFoodListIntentHandler = {
 
             if (currListName === "my list") {
                 currListID = convertJSON[i]['listId'];
-                console.log("listID: " + currListID);
                 break;
             }
         }
 
         //after this, add item to the created "myList" in particular
         //find the length of the list we're looking at and iterate through it
-
-        const createItemResponse = await listClient.createListItem(currListID,
-        {
-            "status": "active",
-            "value": `${food}`
-        }, "")
-
-        var itemID = createItemResponse.id
-
-        console.log("the item ID is: " + itemID);
-
         var currList = await listClient.getList(currListID, "active");
         var currListLength = currList.items.length;
         currList = JSON.stringify(currList);
-        console.log("the list itself: " + currList);
-
         var currListJSON = JSON.parse(currList);
 
 
+
+        console.log("the list before adding item: " + currList);
+        console.log("");
+
+
+        //create the item if doesn't already exist and add count field using for loop through itemIDs
+
+        if (currListJSON['items'].some(item => item.value === `${food}`)) {
+             console.log("this item already exists!");
+        } else {
+             console.log("this item does not already exist!");
+
+             const createItemResponse = await listClient.createListItem(currListID,
+            {
+                "status": "active",
+                "value": `${food}`
+            }, "")
+
+            var newList = await listClient.getList(currListID, "active");
+            var newListLength = newList.items.length;
+            newList = JSON.stringify(newList);
+            var newListJSON = JSON.parse(newList);
+
+            var itemID = createItemResponse.id
+            console.log("the item ID is: " + itemID);
+
+            console.log("the list after adding item: " + newList);
+            console.log("");
+
+            for (let j = 0; j < newListLength; j++) {
+                var newItem = newListJSON['items'][j]
+                var newItemID = newListJSON['items'][j]['id']
+
+                if (itemID === newItemID) {
+                    console.log("found the item we're looking for!")
+                    newItem['count'] = count
+                    newList = JSON.stringify(newListJSON);
+                }
+
+            }
+
+            console.log("the current list after adding count field: " + newList);
+
+
+        }
+
+
+
+
+
+        /*var itemID = createItemResponse.id
+
+        console.log("the item ID is: " + itemID);
+        console.log("the list itself: " + currList);
+
+
         for (let j = 0; j < currListLength; j++) {
+            var currItem = currListJSON['items'][j]
             var currItemID = currListJSON['items'][j]['id']
             //console.log("item IDs: " + currItemID);
 
             if (itemID === currItemID) {
                 console.log("found the item we're looking for!")
-                currListJSON['items'][j]['count'] = count
+                currItem['count'] = count
                 currList = JSON.stringify(currListJSON);
             }
 
         }
 
-        console.log("the current list after adding count field: " + currList);
+        console.log("the current list after adding count field: " + currList);*/
 
 
-
-
-
-
-
-
-
-
-
-
-
-        /*var customCreateItemResponse =
-        {
-            "status": "active",
-            "value": `${food}`,
-            "count": `${count}`
-        };
-
-
-        //add to createItemResponse JSON
-        customCreateItemResponse["count"] = count
-        var itemJSON = JSON.stringify(customCreateItemResponse);
-        console.log("create item response after adding count: " + itemJSON)
-
-
-
-        //get the list items after adding the item
-        var getListResponse = await listClient.getList(currListID, "active");
-        getListResponse["items"].push(customCreateItemResponse);
-
-
-        var currList = JSON.stringify(getListResponse);
-        console.log("the list we created (with added item): " + currList);
-
-
-
+        /*
         //creating axios post request of list to the webserver we have
         //below is the IP for the google cloud VM instance containing the server.
         const sendPostRequest = async () => {
