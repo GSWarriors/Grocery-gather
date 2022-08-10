@@ -225,9 +225,7 @@ const AddFoodListIntentHandler = {
         var currListID = "";
 
 
-
         console.log("The lists converted to JSON: " + stringify);
-        console.log("the array length for convertJSON: " + arrayLength);
 
         for (let i = 0; i < arrayLength; i++) {
 
@@ -241,7 +239,7 @@ const AddFoodListIntentHandler = {
         }
 
         //after this, add item to the created "myList" in particular
-
+        //find the length of the list we're looking at and iterate through it
 
         const createItemResponse = await listClient.createListItem(currListID,
         {
@@ -249,12 +247,66 @@ const AddFoodListIntentHandler = {
             "value": `${food}`
         }, "")
 
+        var itemID = createItemResponse.id
+
+        console.log("the item ID is: " + itemID);
+
+        var currList = await listClient.getList(currListID, "active");
+        var currListLength = currList.items.length;
+        currList = JSON.stringify(currList);
+        console.log("the list itself: " + currList);
+
+        var currListJSON = JSON.parse(currList);
+
+
+        for (let j = 0; j < currListLength; j++) {
+            var currItemID = currListJSON['items'][j]['id']
+            //console.log("item IDs: " + currItemID);
+
+            if (itemID === currItemID) {
+                console.log("found the item we're looking for!")
+                currListJSON['items'][j]['count'] = count
+                currList = JSON.stringify(currListJSON);
+            }
+
+        }
+
+        console.log("the current list after adding count field: " + currList);
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*var customCreateItemResponse =
+        {
+            "status": "active",
+            "value": `${food}`,
+            "count": `${count}`
+        };
+
+
+        //add to createItemResponse JSON
+        customCreateItemResponse["count"] = count
+        var itemJSON = JSON.stringify(customCreateItemResponse);
+        console.log("create item response after adding count: " + itemJSON)
+
+
 
         //get the list items after adding the item
-        const getListResponse = await listClient.getList(currListID, "active");
+        var getListResponse = await listClient.getList(currListID, "active");
+        getListResponse["items"].push(customCreateItemResponse);
+
 
         var currList = JSON.stringify(getListResponse);
-        console.log("the list we created: " + currList);
+        console.log("the list we created (with added item): " + currList);
 
 
 
@@ -279,7 +331,7 @@ const AddFoodListIntentHandler = {
             }
         };
 
-        sendPostRequest();
+        sendPostRequest();*/
 
 
 
